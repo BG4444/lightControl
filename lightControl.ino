@@ -6,7 +6,7 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-const char subst[2] = {'~','#'};
+const char subst[2] = {'0','1'};
 
 WiFiClientSecure client;
     
@@ -19,7 +19,7 @@ void setup()
   Serial.print("connecting to ");
   Serial.println(ssid);
   WiFi.mode(WIFI_STA);
-  WiFi.hostname("ESP-water");
+  WiFi.hostname("ESP-light");
   WiFi.begin(ssid, password);
   size_t nError=0;
   while (WiFi.status() != WL_CONNECTED) 
@@ -75,7 +75,7 @@ void loop()
     Serial.print("requesting URL  ");
     Serial.println(url);
   
-    client.print(String("PUT ") + url + " HTTP/1.1\r\n" +
+    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                  "Host: " + host + "\r\n" +
                  "User-Agent: ESP8266\r\n" +
                  "Accept: *//*\r\n" +
@@ -86,16 +86,16 @@ void loop()
                     "\r\n\r\n");
   
     Serial.println("request sent");
-    String line = client.readStringUntil('\n');
     while (client.connected()) 
     {
-      
+      String line = client.readStringUntil('\n');
       if (line == "\r") 
       {
         Serial.println("headers received");
         break;
       }
     }
+    String line = client.readStringUntil('\n');
     Serial.println("reply was ");
     Serial.println("==========");
     Serial.println(line);
