@@ -10,7 +10,7 @@ const char subst[2] = {'0','1'};
 
 static uint32_t uptime = 0;
 
-WiFiClient client;
+WiFiClientSecure client;
 
 String getHex(uint32_t in)
 {
@@ -55,7 +55,7 @@ void setup()
  
   Serial.print("connecting to ");
   Serial.println(host);
-
+  client.setFingerprint(fingerprint);
   
 }
 
@@ -89,7 +89,7 @@ void loop()
                  token + hex +
                     "\r\n\r\n");
     Serial.println(hex);
-     Serial.println(uptime);
+    Serial.println(uptime);
     Serial.println("request sent");
     while (client.connected()) 
     {
