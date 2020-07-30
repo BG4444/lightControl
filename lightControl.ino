@@ -8,13 +8,27 @@ const char* password = STAPSK;
 
 const char subst[2] = {'0','1'};
 
-WiFiClientSecure client;
-    
-void setup() 
+static uint32_t uptime = 0;
+
+WiFiClient client;
+
+String getHex(uint32_t in)
 {
-  
-  Serial.begin(115200);
-  pinMode(3, INPUT);
+    String ret(in);
+    while(ret.length()<16)
+    {
+        ret=' '+ret;
+    }
+    return ret;
+}
+
+void setup() 
+{  
+  Serial.begin(115200); 
+
+  pinMode(3, OUTPUT);
+
+
   Serial.println();
   Serial.print("connecting to ");
   Serial.println(ssid);
@@ -42,9 +56,6 @@ void setup()
   Serial.print("connecting to ");
   Serial.println(host);
 
-  Serial.printf("Using fingerprint '%s'\n", fingerprint);
-  client.setFingerprint(fingerprint);
-
   
 }
 
@@ -53,6 +64,7 @@ void loop()
   static size_t nError=0;
   for(;;)
   {
+    Serial.println("connecting...");
     if (!client.connect(host, httpsPort)) 
     {
       Serial.println("connection failed");
@@ -60,31 +72,24 @@ void loop()
       {
          ESP.restart();
       } 
-      break;  
+      break;
     }
 
-    nError=0;
-
-    const auto v=digitalRead(3);
-
-    const char status = subst[ size_t (v==HIGH) ];
-
-    Serial.println(status);
-
+    nError=0;    
     
     Serial.print("requesting URL  ");
     Serial.println(url);
-  
+    const auto hex= getHex(uptime);
     client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                  "Host: " + host + "\r\n" +
                  "User-Agent: ESP8266\r\n" +
                  "Accept: *//*\r\n" +
-                 "Content-Length:129\r\n" +                    
+                 "Content-Length:144\r\n" +
                  "Connection: close\r\n\r\n" + 
-                 token +
-                 status +
+                 token + hex +
                     "\r\n\r\n");
-  
+    Serial.println(hex);
+     Serial.println(uptime);
     Serial.println("request sent");
     while (client.connected()) 
     {
@@ -100,8 +105,13 @@ void loop()
     Serial.println("==========");
     Serial.println(line);
     Serial.println("==========");
-    Serial.println("closing connection");
+    Serial.println("closing connection");    
+    const auto v=line.toInt();
+
+    digitalWrite(3, v & 0b01);
+
     break;    
-  }
-  delay(10000);
+  }  
+  delay(2000);
+  ++uptime;
 }
