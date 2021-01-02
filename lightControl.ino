@@ -26,8 +26,13 @@ void setup()
 {  
   Serial.begin(115200); 
 
-  pinMode(3, OUTPUT);
+  for(uint8_t i=1;i<=3;++i)
+  {    
+    pinMode(i, OUTPUT);
+  }
 
+  bool onOff = true;
+    
 
   Serial.println();
   Serial.print("connecting to ");
@@ -38,12 +43,14 @@ void setup()
   size_t nError=0;
   while (WiFi.status() != WL_CONNECTED) 
   {
-    delay(1000);
+    digitalWrite(2, onOff); 
+    delay( onOff ? 1000 : 500);
     Serial.print(".");
     if(++nError==20)
     {
        ESP.restart();
     }
+    onOff = !onOff;
   }
   
   Serial.println("");
@@ -62,6 +69,7 @@ void setup()
 void loop() 
 {
   static size_t nError=0;
+  static bool onOff = false;
   for(;;)
   {
     Serial.println("connecting...");
@@ -108,7 +116,12 @@ void loop()
     Serial.println("closing connection");    
     const auto v=line.toInt();
 
-    digitalWrite(3, v & 0b01);
+    digitalWrite(3,bool( v & 0b01));    
+    digitalWrite(1,bool( v & 0b10));
+    
+    digitalWrite(2, onOff);
+
+    onOff=!onOff;
 
     break;    
   }  
